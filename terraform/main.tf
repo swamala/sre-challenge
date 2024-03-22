@@ -104,9 +104,18 @@ resource "aws_codedeploy_deployment_group" "workers-deployment_grp" {
 
 variable "elb_name" {
     type    = string
-    default = "application-lb"
+    default = "application-lb"    
 }
 
+variable "vpc_id" {
+    type    = string
+    default = "vpc-0792372e93a253e53"    
+}
+
+variable "public_subnet_ids" {
+    type = list(string)
+    default = ["subnet-0c80a127103c7f99e", "subnet-08c1c9049e6629ec4"]
+}
 
 variable "sns_topic" {
     type    = string
@@ -115,9 +124,104 @@ variable "sns_topic" {
 
 module "application" {
     source     = "./application"
+    alb_security_group_id = aws_security_group.alb_security_group.id
+    target_group_arn = aws_lb_target_group.application.arn
 
     min_size   = 2
     max_size   = 4
+}
+
+resource "aws_security_group" "alb_security_group" {
+  name        = "alb-security-group"
+  description = "Security group for Application Load Balancer"
+
+  vpc_id = var.vpc_id
+
+  // Inbound rules: Allow HTTP and HTTPS traffic from anywhere
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  // Outbound rule: Allow all traffic to go out
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "alb-security-group"
+  }
+}
+
+resource "aws_lb" "application" {
+    name               = "sre-application-alb"
+    internal           = false
+    load_balancer_type = "application"
+    security_groups    = [aws_security_group.alb_security_group.id]
+    subnets            = var.public_subnet_ids
+
+    tags = {
+        Name = "sre-application-alb"
+    }
+}
+
+resource "aws_lb_target_group" "application" {
+    name        = "sre-application-tg"
+    port        = 80
+    protocol    = "HTTP"
+    vpc_id      = "${var.vpc_id}"
+    target_type = "instance"
+
+    health_check {
+        path                = "/"
+        interval            = 30
+        timeout             = 10
+        healthy_threshold   = 3
+        unhealthy_threshold = 3
+    }
+
+    tags = {
+        Name = "sre-application-tg"
+    }
+}
+
+resource "aws_lb_listener" "application" {
+    load_balancer_arn = "${aws_lb.application.arn}"
+    port              = 80
+    protocol          = "HTTP"
+
+    default_action {
+        type             = "forward"
+        target_group_arn = "${aws_lb_target_group.application.arn}"
+    }
+}
+
+resource "aws_lb_listener_rule" "application" {
+    listener_arn = "${aws_lb_listener.application.arn}"
+    priority     = 100
+
+    action {
+        type             = "forward"
+        target_group_arn = "${aws_lb_target_group.application.arn}"
+    }
+
+    condition {
+        path_pattern {
+            values = ["/"]
+        }
+    }
 }
 
 resource "aws_codedeploy_deployment_group" "application-deployment-grp" {
@@ -134,6 +238,9 @@ resource "aws_codedeploy_deployment_group" "application-deployment-grp" {
         elb_info {
             name = "${var.elb_name}"
         }
+        target_group_info {
+            name = aws_lb_target_group.application.name
+        }
     }
 
     trigger_configuration {
@@ -149,4 +256,12 @@ resource "aws_codedeploy_deployment_group" "application-deployment-grp" {
 
     autoscaling_groups    = ["${module.application.scaling_group_id}",
                             ]
+}
+
+output "alb_security_group_id" {
+  value = aws_security_group.alb_security_group.id
+}
+
+output "target_group_arn" {
+  value = aws_lb_target_group.application.arn
 }

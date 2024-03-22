@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# Update package list
+apt-get update
+
+# Install nginx
+apt-get install -y nginx
+
+# Install Python3 virtualenv
+apt-get install -y python3-venv
+
+# Install Python development package
+apt-get install -y python3-dev
+
+# Install uwsgi
+apt-get install -y uwsgi
+
+# Create directory /var/log/uwsgi
+mkdir -p /var/log/uwsgi
+
+# Change permissions to read/write for /var/log/uwsgi
+chmod 777 /var/log/uwsgi

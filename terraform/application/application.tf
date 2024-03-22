@@ -8,6 +8,14 @@ variable "security_groups" {
     default = ["sg-0c38630af0afc6df0"]
 }
 
+variable "alb_security_group_id" {
+  type = string
+}
+
+variable "target_group_arn" {
+  type = string
+}
+
 variable "min_size" {
     type = number
     default = 1
@@ -52,7 +60,7 @@ resource "aws_launch_template" "application" {
     image_id               = "${var.application_ami}"
     key_name               = "Devops Primary"
     instance_type          = "${var.instance_type}"
-    vpc_security_group_ids = "${var.security_groups}"
+    vpc_security_group_ids = concat(var.security_groups, [var.alb_security_group_id])
     tag_specifications {
         resource_type = "instance"
 
@@ -63,6 +71,8 @@ resource "aws_launch_template" "application" {
             var.extra_tags,
             )
     }
+  
+    user_data              = base64encode(templatefile("${path.module}/userdata.tmpl", {}))
 
     iam_instance_profile {
         name = "CodeDeploy-EC2-Instance-Profile"
@@ -90,14 +100,14 @@ resource "aws_autoscaling_group" "application" {
     min_size = "${var.min_size}"
     desired_capacity = "${var.desired_capacity}"
     max_size = "${var.max_size}"
-    vpc_zone_identifier = ["subnet-056e052ec65ff2bf2", "subnet-0fe317b6ad2fff63b"]
+    vpc_zone_identifier = ["subnet-0c80a127103c7f99e", "subnet-08c1c9049e6629ec4"]
 
     launch_template {
       id        = "${aws_launch_template.application.id}"
       version   = "$Latest"
     }
     
-    target_group_arns = ["arn:aws:elasticloadbalancing:us-west-2:639035123345:targetgroup/sre-challenge-instaces/98bc5a1ef658abce"]
+    target_group_arns = [var.target_group_arn]
 }
 
 resource "aws_autoscaling_policy" "application_cpu" {
