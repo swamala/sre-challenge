@@ -104,7 +104,7 @@ resource "aws_codedeploy_deployment_group" "workers-deployment_grp" {
 
 variable "elb_name" {
     type    = string
-    default = "application-lb"    
+    default = "sre-application-alb"    
 }
 
 variable "vpc_id" {
@@ -235,9 +235,7 @@ resource "aws_codedeploy_deployment_group" "application-deployment-grp" {
     }
 
     load_balancer_info {
-        elb_info {
-            name = "${var.elb_name}"
-        }
+       
         target_group_info {
             name = aws_lb_target_group.application.name
         }

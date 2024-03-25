@@ -20,3 +20,10 @@ mkdir -p /var/log/uwsgi
 
 # Change permissions to read/write for /var/log/uwsgi
 chmod -R 777 /var/log/uwsgi
+
+## Install aws codedeploy agent
+apt install ruby-full wget -y
+cd /home/ubuntu
+wget https://aws-codedeploy-us-west-2.s3.us-west-2.amazonaws.com/latest/install
+chmod +x ./install
+./install auto
