@@ -4,4 +4,4 @@
 sudo systemctl start uwsgi.service
 
 # Start reverse proxy
-sudo systemctl start nginz.service
+sudo systemctl start nginx.service
