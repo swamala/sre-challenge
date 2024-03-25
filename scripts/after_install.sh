@@ -10,5 +10,6 @@ source venv/bin/activate
 # Install python requirements
 pip install -r requirements.txt
 
-# Link uWSGI configuration file
-sudo ln -sf /var/www/html/django_project/config/uwsgi.ini /etc/nginx/nginx.conf
+# Link uWSGI & Nginx configuration files
+sudo ln -sf /var/www/html/django_project/config/uwsgi.ini /etc/uwsgi/uwsgi.ini
+sudo ln -sf /var/www/html/django_project/config/nginx.conf /etc/nginx/nginx.conf
