@@ -1,4 +1,7 @@
 #!/bin/bash
 
+# Create uwsgi pid dir
+sudo mkdir -p /var/run/uwsgi
+
 # Create logging directory
-mkdir -p /var/log/uwsgi
+sudo mkdir -p /var/log/uwsgi
