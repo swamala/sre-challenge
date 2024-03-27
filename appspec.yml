@@ -5,10 +5,10 @@ files:
     destination: /var/www/html/django_project
 file_exists_behavior: OVERWRITE
 permissions:
-  - object: /var/www/html
+  - object: /var/www/html/django_project
     owner: ubuntu
     group: ubuntu
-    mode: 755
+    mode: 775
     type:
       - directory
       - file
@@ -29,7 +29,4 @@ hooks:
     - location: scripts/application_start.sh
       timeout: 60
       runas: ubuntu
-  ApplicationStop:
-    - location: scripts/application_stop.sh
-      timeout: 60
-      runas: ubuntu
+
