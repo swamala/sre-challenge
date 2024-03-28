@@ -24,7 +24,7 @@ As part of this challenge, you will undertake the following tasks:
 
 To get started with the SRE Challenge project, follow these steps:
 
-1. Fork the repository (https://github.com/crazywizard254/sre-challenge)[https://github.com/crazywizard254/sre-challenge] and clone to your local machine:
+1. Fork the repository [https://github.com/crazywizard254/sre-challenge](https://github.com/crazywizard254/sre-challenge) and clone to your local machine:
 
    ```bash
    git clone https://github.com/your-username/sre-challenge.git
